@@ -20,14 +20,14 @@
 package org.apache.guacamole.auth.vhost.user;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.guacamole.GuacamoleException;
-import org.apache.guacamole.GuacamoleServerException;
 import org.apache.guacamole.auth.vhost.connection.VHostConnection;
 import org.apache.guacamole.form.Form;
 import org.apache.guacamole.net.auth.Connection;
@@ -104,6 +104,22 @@ public class VHostUserContext extends DelegatingUserContext {
             public Connection undecorate(Connection object) throws GuacamoleException {
                 assert (object instanceof VHostConnection);
                 return ((VHostConnection) object).getUndecorated();
+            }
+            
+            @Override
+            public Set<String> getIdentifiers() throws GuacamoleException {
+                Set<String> identifiers = new HashSet<>(super.getIdentifiers());
+                Permissions effective = self().getEffectivePermissions();
+                SystemPermissionSet sysPermissions = effective.getSystemPermissions();
+                ObjectPermissionSet objPermissions = effective.getConnectionPermissions();
+                Boolean isAdmin = sysPermissions.hasPermission(SystemPermission.Type.ADMINISTER);
+                
+                for (String id : identifiers) {
+                    if (!isAdmin && !objPermissions.hasPermission(ObjectPermission.Type.UPDATE, id))
+                        identifiers.remove(id);
+                }
+                
+                return identifiers;
             }
             
         };
