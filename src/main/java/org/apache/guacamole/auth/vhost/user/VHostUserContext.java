@@ -117,12 +117,15 @@ public class VHostUserContext extends DelegatingUserContext {
                 for (String id : identifiers) {
                     Map<String, String> attributes = this.get(id).getAttributes();
                     
-                    if (!isAdmin 
-                            && !objPermissions.hasPermission(ObjectPermission.Type.UPDATE, id)
-                            && !(attributes.containsKey(VHostConnection.VHOST_HOSTNAME_ATTRIBUTE)
+                    if (isAdmin || objPermissions.hasPermission(ObjectPermission.Type.UPDATE, id))
+                        continue;
+                    
+                    if (attributes.containsKey(VHostConnection.VHOST_HOSTNAME_ATTRIBUTE)
                             && thisVHost.equals(attributes.get(VHostConnection.VHOST_HOSTNAME_ATTRIBUTE)))
-                            )
-                        identifiers.remove(id);
+                        continue;
+                    
+                    logger.debug(">>>VHOST<<< Removing connection identifier {}", id);
+                    identifiers.remove(id);
                 }
                 
                 return identifiers;
