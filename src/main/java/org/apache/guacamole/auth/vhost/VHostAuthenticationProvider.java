@@ -27,8 +27,8 @@ import org.apache.guacamole.net.auth.Credentials;
 import org.apache.guacamole.net.auth.UserContext;
 
 /**
- *
- * @author nick_couchman
+ * Authentication provider that decorates another module, providing automatic
+ * connection to a host through a virtual hostname.
  */
 public class VHostAuthenticationProvider extends AbstractAuthenticationProvider {
 
@@ -52,8 +52,12 @@ public class VHostAuthenticationProvider extends AbstractAuthenticationProvider 
         // Just return it, no need to redeocrate
         if (context instanceof VHostUserContext)
             return context;
+        
+        // If we already have a decorated instance, return that.
         else if (decorated instanceof VHostUserContext)
             return decorated;
+        
+        // Return a  new decorated instance.
         else
             return new VHostUserContext(context, credentials.getRequest());
     }
