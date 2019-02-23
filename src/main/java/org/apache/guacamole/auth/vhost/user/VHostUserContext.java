@@ -77,7 +77,9 @@ public class VHostUserContext extends DelegatingUserContext {
                     Boolean canUpdate = 
                             (sysPermissions.hasPermission(SystemPermission.Type.ADMINISTER) 
                             || objPermissions.hasPermission(ObjectPermission.Type.UPDATE, object.getIdentifier()));
-                    URI requestUri = new URI(request.getRequestURI());
+                    String requestUriStr = request.getRequestURI();
+                    logger.debug(">>>VHOST<<< Request URI: {}", requestUriStr);
+                    URI requestUri = new URI(requestUriStr);
                     String vHost = requestUri.getHost();
                     logger.debug(">>>VHOST<<< Virtual host: {}", vHost);
                     Map<String, String> attributes = object.getAttributes();
