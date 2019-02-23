@@ -96,8 +96,7 @@ public class VHostUserContext extends DelegatingUserContext {
                     return new VHostConnection(object);
                 
                 // If not admin or updater, and no vhost, remove connection
-                this.remove(object.getIdentifier());
-                return null;
+                return object;
             }
             
             @Override
@@ -108,6 +107,7 @@ public class VHostUserContext extends DelegatingUserContext {
             
             @Override
             public Set<String> getIdentifiers() throws GuacamoleException {
+                String thisVHost = URI.create(request.getRequestURL().toString()).getHost();
                 Set<String> identifiers = new HashSet<>(super.getIdentifiers());
                 Permissions effective = self().getEffectivePermissions();
                 SystemPermissionSet sysPermissions = effective.getSystemPermissions();
@@ -115,7 +115,13 @@ public class VHostUserContext extends DelegatingUserContext {
                 Boolean isAdmin = sysPermissions.hasPermission(SystemPermission.Type.ADMINISTER);
                 
                 for (String id : identifiers) {
-                    if (!isAdmin && !objPermissions.hasPermission(ObjectPermission.Type.UPDATE, id))
+                    Map<String, String> attributes = this.get(id).getAttributes();
+                    
+                    if (!isAdmin 
+                            && !objPermissions.hasPermission(ObjectPermission.Type.UPDATE, id)
+                            && !(attributes.containsKey(VHostConnection.VHOST_HOSTNAME_ATTRIBUTE)
+                            && thisVHost.equals(attributes.get(VHostConnection.VHOST_HOSTNAME_ATTRIBUTE)))
+                            )
                         identifiers.remove(id);
                 }
                 
