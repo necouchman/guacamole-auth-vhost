@@ -1,0 +1,11 @@
+{
+    "DATA_SOURCE_VHOST" : {
+        "NAME" : "Virtual Host Extension"
+    },
+    
+    "CONNECTION_ATTRIBUTES" : {
+        "FIELD_HEADER_VHOST_HOSTNAME"     : "Virtual Host",
+        
+        "SECTION_HEADER_VHOST_ATTRIBUTES" : "Virtual Host Attributes"
+    }
+}

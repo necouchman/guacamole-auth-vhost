@@ -40,6 +40,8 @@ import org.apache.guacamole.net.auth.permission.ObjectPermission;
 import org.apache.guacamole.net.auth.permission.ObjectPermissionSet;
 import org.apache.guacamole.net.auth.permission.SystemPermission;
 import org.apache.guacamole.net.auth.permission.SystemPermissionSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -47,6 +49,14 @@ import org.apache.guacamole.net.auth.permission.SystemPermissionSet;
  */
 public class VHostUserContext extends DelegatingUserContext {
     
+    /**
+     * The logger for this class.
+     */
+    private static final Logger logger = LoggerFactory.getLogger(VHostUserContext.class);
+    
+    /**
+     * The HTTP Request associated with this user context.
+     */
     private final HttpServletRequest request;
     
     public VHostUserContext(UserContext object, HttpServletRequest request) {
@@ -69,6 +79,7 @@ public class VHostUserContext extends DelegatingUserContext {
                             || objPermissions.hasPermission(ObjectPermission.Type.UPDATE, object.getIdentifier()));
                     URI requestUri = new URI(request.getRequestURI());
                     String vHost = requestUri.getHost();
+                    logger.debug(">>>VHOST<<< Virtual host: {}", vHost);
                     Map<String, String> attributes = object.getAttributes();
                     if (attributes != null && vHost != null && !vHost.isEmpty()
                             && attributes.containsKey(VHostConnection.VHOST_HOSTNAME_ATTRIBUTE)
