@@ -96,6 +96,7 @@ public class VHostUserContext extends DelegatingUserContext {
                     return new VHostConnection(object);
                 
                 // If not admin or updater, and no vhost, remove connection
+                this.remove(object.getIdentifier());
                 return null;
             }
             
