@@ -1,0 +1,11 @@
+{
+    "guacamoleVersion" : "1.1.0",
+
+    "name"             : "Guacamole vHost Authentication Extension",
+    "namespace"        : "vhost",
+
+    "authProviders"    : [
+        "com.example.guacamole.auth.vhost.VHostAuthenticationProvider"
+    ]
+
+}
