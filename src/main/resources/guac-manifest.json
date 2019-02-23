@@ -1,5 +1,5 @@
 {
-    "guacamoleVersion" : "1.1.0",
+    "guacamoleVersion" : "1.0.0",
 
     "name"             : "Guacamole vHost Authentication Extension",
     "namespace"        : "vhost",
