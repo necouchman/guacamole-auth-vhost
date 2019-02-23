@@ -5,7 +5,7 @@
     "namespace"        : "vhost",
 
     "authProviders"    : [
-        "com.example.guacamole.auth.vhost.VHostAuthenticationProvider"
+        "org.apache.guacamole.auth.vhost.VHostAuthenticationProvider"
     ]
 
 }
