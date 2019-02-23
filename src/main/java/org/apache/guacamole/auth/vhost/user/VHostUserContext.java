@@ -70,28 +70,33 @@ public class VHostUserContext extends DelegatingUserContext {
             
             @Override
             public Connection decorate(Connection object) throws GuacamoleException {
-                try {
-                    Permissions effective = self().getEffectivePermissions();
-                    SystemPermissionSet sysPermissions = effective.getSystemPermissions();
-                    ObjectPermissionSet objPermissions = effective.getConnectionPermissions();
-                    Boolean canUpdate = 
-                            (sysPermissions.hasPermission(SystemPermission.Type.ADMINISTER) 
-                            || objPermissions.hasPermission(ObjectPermission.Type.UPDATE, object.getIdentifier()));
-                    String requestUriStr = request.getRequestURL().toString();
-                    logger.debug(">>>VHOST<<< Request URI: {}", requestUriStr);
-                    URI requestUri = new URI(request.getRequestURL().toString());
-                    String vHost = requestUri.getHost();
-                    logger.debug(">>>VHOST<<< Virtual host: {}", vHost);
-                    Map<String, String> attributes = object.getAttributes();
-                    if (attributes != null && vHost != null && !vHost.isEmpty()
-                            && attributes.containsKey(VHostConnection.VHOST_HOSTNAME_ATTRIBUTE)
-                            && vHost.equals(attributes.get(VHostConnection.VHOST_HOSTNAME_ATTRIBUTE)))
-                        return new VHostConnection(object, canUpdate);
-                    return object;
-                }
-                catch (URISyntaxException e) {
-                    throw new GuacamoleServerException(e);
-                }
+
+                Permissions effective = self().getEffectivePermissions();
+                SystemPermissionSet sysPermissions = effective.getSystemPermissions();
+                ObjectPermissionSet objPermissions = effective.getConnectionPermissions();
+                Boolean isAdmin = sysPermissions.hasPermission(SystemPermission.Type.ADMINISTER);
+
+                // Determine whether or not we have update permissions
+                Boolean canUpdate = (objPermissions.hasPermission(
+                                ObjectPermission.Type.UPDATE,
+                                object.getIdentifier())
+                        );
+                
+                if (isAdmin || canUpdate)
+                    return new VHostConnection(object, true);
+
+                // Get the hostname used to access Guacamole
+                String vHost = URI.create(request.getRequestURL().toString()).getHost();
+
+                // Retrieve attributes
+                Map<String, String> attributes = object.getAttributes();
+                if (attributes != null && vHost != null && !vHost.isEmpty()
+                        && attributes.containsKey(VHostConnection.VHOST_HOSTNAME_ATTRIBUTE)
+                        && vHost.equals(attributes.get(VHostConnection.VHOST_HOSTNAME_ATTRIBUTE)))
+                    return new VHostConnection(object);
+                
+                // If not admin or updater, and no vhost, remove connection
+                return null;
             }
             
             @Override

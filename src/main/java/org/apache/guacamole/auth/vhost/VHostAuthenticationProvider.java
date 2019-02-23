@@ -25,32 +25,16 @@ import org.apache.guacamole.net.auth.AbstractAuthenticationProvider;
 import org.apache.guacamole.net.auth.AuthenticatedUser;
 import org.apache.guacamole.net.auth.Credentials;
 import org.apache.guacamole.net.auth.UserContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Authentication provider that decorates another module, providing automatic
  * connection to a host through a virtual hostname.
  */
 public class VHostAuthenticationProvider extends AbstractAuthenticationProvider {
-
-    private static final Logger logger = LoggerFactory.getLogger(VHostAuthenticationProvider.class);
-    
-    private String authUri;
     
     @Override
     public String getIdentifier() {
         return "vhost";
-    }
-    
-    @Override
-    public AuthenticatedUser authenticateUser(Credentials credentials) 
-            throws GuacamoleException {
-        
-        authUri = credentials.getRequest().getRequestURL().toString();
-        logger.debug(">>>VHOST<<< Authentication URI: {}", authUri);
-        return null;
-        
     }
     
     @Override

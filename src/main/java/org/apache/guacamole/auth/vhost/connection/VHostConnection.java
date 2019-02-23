@@ -58,6 +58,10 @@ public class VHostConnection extends DelegatingConnection {
         this.canUpdate = canUpdate;
     }
     
+    public VHostConnection(Connection object) {
+        this(object, false);
+    }
+    
     @Override
     public Map<String, String> getAttributes() {
         Map<String, String> attributes = new HashMap<>(super.getAttributes());
