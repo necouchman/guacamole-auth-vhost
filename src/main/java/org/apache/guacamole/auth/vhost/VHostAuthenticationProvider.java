@@ -47,7 +47,7 @@ public class VHostAuthenticationProvider extends AbstractAuthenticationProvider 
     public AuthenticatedUser authenticateUser(Credentials credentials) 
             throws GuacamoleException {
         
-        authUri = credentials.getRequest().getRequestURI();
+        authUri = credentials.getRequest().getRequestURL().toString();
         logger.debug(">>>VHOST<<< Authentication URI: {}", authUri);
         return null;
         
