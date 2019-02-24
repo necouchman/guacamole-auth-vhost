@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.guacamole.GuacamoleException;
 import org.apache.guacamole.auth.vhost.connection.VHostConnection;
@@ -92,8 +93,6 @@ public class VHostUserContext extends DelegatingUserContext {
             
             @Override
             public Set<String> getIdentifiers() throws GuacamoleException {
-                String thisVHost = URI.create(request.getRequestURL().toString()).getHost();
-                logger.debug(">>>VHOST<<< This VHOST: {}", thisVHost);
                 Set<String> identifiers = new HashSet<>(super.getIdentifiers());
                 
                 for (String id : identifiers) {
@@ -114,7 +113,7 @@ public class VHostUserContext extends DelegatingUserContext {
             @Override
             public Collection<Connection> getAll(Collection<String> identifiers)
                     throws GuacamoleException {
-                Collection<Connection> connections = new ArrayList<>(super.getAll(identifiers));
+                Collection<Connection> connections = new CopyOnWriteArrayList<>(super.getAll(identifiers));
                 for (Connection connection : connections) {
                     
                     if (isAdmin() || canUpdate(connection.getIdentifier()))
