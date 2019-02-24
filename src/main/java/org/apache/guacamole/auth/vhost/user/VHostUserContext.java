@@ -20,6 +20,7 @@
 package org.apache.guacamole.auth.vhost.user;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -70,29 +71,13 @@ public class VHostUserContext extends DelegatingUserContext {
             
             @Override
             public Connection decorate(Connection object) throws GuacamoleException {
-
-                Permissions effective = self().getEffectivePermissions();
-                SystemPermissionSet sysPermissions = effective.getSystemPermissions();
-                ObjectPermissionSet objPermissions = effective.getConnectionPermissions();
-                Boolean isAdmin = sysPermissions.hasPermission(SystemPermission.Type.ADMINISTER);
-
-                // Determine whether or not we have update permissions
-                Boolean canUpdate = (objPermissions.hasPermission(
-                                ObjectPermission.Type.UPDATE,
-                                object.getIdentifier())
-                        );
                 
-                if (isAdmin || canUpdate)
+                if (isAdmin() || canUpdate(object.getIdentifier()))
                     return new VHostConnection(object, true);
-
-                // Get the hostname used to access Guacamole
-                String vHost = URI.create(request.getRequestURL().toString()).getHost();
 
                 // Retrieve attributes
                 Map<String, String> attributes = object.getAttributes();
-                if (attributes != null && vHost != null && !vHost.isEmpty()
-                        && attributes.containsKey(VHostConnection.VHOST_HOSTNAME_ATTRIBUTE)
-                        && vHost.equals(attributes.get(VHostConnection.VHOST_HOSTNAME_ATTRIBUTE)))
+                if (hasVHostAttribute(object.getAttributes()))
                     return new VHostConnection(object);
                 
                 // If not admin or updater, and no vhost, remove connection
@@ -108,20 +93,15 @@ public class VHostUserContext extends DelegatingUserContext {
             @Override
             public Set<String> getIdentifiers() throws GuacamoleException {
                 String thisVHost = URI.create(request.getRequestURL().toString()).getHost();
+                logger.debug(">>>VHOST<<< This VHOST: {}", thisVHost);
                 Set<String> identifiers = new HashSet<>(super.getIdentifiers());
-                Permissions effective = self().getEffectivePermissions();
-                SystemPermissionSet sysPermissions = effective.getSystemPermissions();
-                ObjectPermissionSet objPermissions = effective.getConnectionPermissions();
-                Boolean isAdmin = sysPermissions.hasPermission(SystemPermission.Type.ADMINISTER);
                 
                 for (String id : identifiers) {
-                    Map<String, String> attributes = this.get(id).getAttributes();
                     
-                    if (isAdmin || objPermissions.hasPermission(ObjectPermission.Type.UPDATE, id))
+                    if (isAdmin() || canUpdate(id))
                         continue;
                     
-                    if (attributes.containsKey(VHostConnection.VHOST_HOSTNAME_ATTRIBUTE)
-                            && thisVHost.equals(attributes.get(VHostConnection.VHOST_HOSTNAME_ATTRIBUTE)))
+                    if (hasVHostAttribute(this.get(id).getAttributes()))
                         continue;
                     
                     logger.debug(">>>VHOST<<< Removing connection identifier {}", id);
@@ -129,6 +109,47 @@ public class VHostUserContext extends DelegatingUserContext {
                 }
                 
                 return identifiers;
+            }
+            
+            @Override
+            public Collection<Connection> getAll(Collection<String> identifiers)
+                    throws GuacamoleException {
+                Collection<Connection> connections = new ArrayList<>(super.getAll(identifiers));
+                for (Connection connection : connections) {
+                    
+                    if (isAdmin() || canUpdate(connection.getIdentifier()))
+                        continue;
+                    
+                    if (hasVHostAttribute(connection.getAttributes()))
+                        continue;
+                    
+                    logger.debug(">>>VHOST<<< Removing connection with id {}",
+                            connection.getIdentifier());
+                    connections.remove(connection);
+                    
+                }
+                
+                return connections;
+            }
+            
+            private Boolean isAdmin() throws GuacamoleException {
+                Permissions effective = self().getEffectivePermissions();
+                return effective.getSystemPermissions().hasPermission(SystemPermission.Type.ADMINISTER);
+            }
+            
+            private Boolean canUpdate(String identifier) throws GuacamoleException {
+                Permissions effective = self().getEffectivePermissions();
+                return effective.getConnectionPermissions().hasPermission(ObjectPermission.Type.UPDATE, identifier);
+            }
+            
+            private Boolean hasVHostAttribute(Map<String, String> attributes) {
+                String vHost = URI.create(request.getRequestURL().toString()).getHost();
+                logger.debug(">>>VHOST<<< This VHOST: {}", vHost);
+                return (attributes != null 
+                        && vHost != null 
+                        && !vHost.isEmpty()
+                        && attributes.containsKey(VHostConnection.VHOST_HOSTNAME_ATTRIBUTE)
+                        && vHost.equals(attributes.get(VHostConnection.VHOST_HOSTNAME_ATTRIBUTE)));
             }
             
         };
