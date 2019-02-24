@@ -92,25 +92,6 @@ public class VHostUserContext extends DelegatingUserContext {
             }
             
             @Override
-            public Set<String> getIdentifiers() throws GuacamoleException {
-                Set<String> identifiers = new HashSet<>(super.getIdentifiers());
-                
-                for (String id : identifiers) {
-                    
-                    if (isAdmin() || canUpdate(id))
-                        continue;
-                    
-                    if (hasVHostAttribute(this.get(id).getAttributes()))
-                        continue;
-                    
-                    logger.debug(">>>VHOST<<< Removing connection identifier {}", id);
-                    identifiers.remove(id);
-                }
-                
-                return identifiers;
-            }
-            
-            @Override
             public Collection<Connection> getAll(Collection<String> identifiers)
                     throws GuacamoleException {
                 Collection<Connection> connections = new CopyOnWriteArrayList<>(super.getAll(identifiers));
@@ -144,6 +125,11 @@ public class VHostUserContext extends DelegatingUserContext {
             private Boolean hasVHostAttribute(Map<String, String> attributes) {
                 String vHost = URI.create(request.getRequestURL().toString()).getHost();
                 logger.debug(">>>VHOST<<< This VHOST: {}", vHost);
+                if (attributes != null && attributes.containsKey(VHostConnection.VHOST_HOSTNAME_ATTRIBUTE)) {
+                    logger.debug(">>>VHOST<<< We have a vhost attribute: {}", 
+                            attributes.get(VHostConnection.VHOST_HOSTNAME_ATTRIBUTE));
+                    
+                }
                 return (attributes != null 
                         && vHost != null 
                         && !vHost.isEmpty()
