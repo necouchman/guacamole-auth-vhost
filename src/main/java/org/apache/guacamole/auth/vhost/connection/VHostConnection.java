@@ -69,8 +69,6 @@ public class VHostConnection extends DelegatingConnection {
         for (String attr : VHOST_ATTRIBUTES) {
             if (!attributes.containsKey(attr) && canUpdate)
                 attributes.put(attr, null);
-            else if (attributes.containsKey(attr) && !canUpdate)
-                attributes.remove(attr);
         }
         
         return attributes;
